@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Vendas — AquaSmart</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f5f5f5; color: #1a1a1a; padding: 1.25rem; }
+  .topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px; }
+  .titulo { font-size: 20px; font-weight: 600; color: #185FA5; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .card { background: #efefef; border-radius: 8px; padding: 14px 16px; }
+  .card-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+  .card-val { font-size: 20px; font-weight: 600; }
+  .card-sub { font-size: 11px; color: #999; margin-top: 3px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .tab { font-size: 13px; cursor: pointer; padding: 6px 14px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #666; }
+  .tab.active { background: #eee; color: #111; font-weight: 600; border-color: #bbb; }
+  .seller-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.125rem; margin-bottom: 1rem; }
+  .seller-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .seller-name { font-size: 14px; font-weight: 600; }
+  .seller-total { font-size: 12px; color: #666; margin-top: 2px; }
+  .seller-pct { margin-left: auto; font-size: 18px; font-weight: 600; }
+  .bar-bg { width: 100%; height: 7px; background: #eee; border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+  .client-list { display: flex; flex-direction: column; gap: 7px; }
+  .client-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .client-name { color: #555; width: 160px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .client-bar-bg { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .client-bar-fill { height: 100%; border-radius: 3px; }
+  .client-vals { display: flex; gap: 6px; align-items: center; flex-shrink: 0; min-width: 140px; justify-content: flex-end; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .badge-status { padding: 4px 12px; font-size: 13px; }
+  .loading { text-align: center; padding: 3rem; color: #888; font-size: 14px; }
+  .erro { text-align: center; padding: 2rem; color: #c00; font-size: 13px; line-height: 1.8; background: #fff8f8; border-radius: 8px; border: 1px solid #fcc; }
+  .rodape { margin-top: 10px; font-size: 11px; color: #aaa; }
+  button.refresh { font-size: 12px; padding: 5px 14px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+  button.refresh:hover { background: #f0f0f0; }
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <span class="titulo">Painel de vendas — AquaSmart</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="status-geral" class="badge badge-amber badge-status" style="display:none"></div>
+    <button class="refresh" onclick="carregar()">Atualizar</button>
+  </div>
+</div>
+
+<div id="conteudo"><div class="loading">Carregando dados da planilha...</div></div>
+<div class="rodape"><span id="atualizado"></span></div>
+
+<script>
+const URL_VENDAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS08xvX_Kqv4oHay2RgpA4PLOKg1Pu6xADTYUdrc3vABmiiubF790pFppq8CuDooaRg8srzPIZDwiLU/pub?gid=73406152&single=true&output=csv';
+const URL_METAS  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS08xvX_Kqv4oHay2RgpA4PLOKg1Pu6xADTYUdrc3vABmiiubF790pFppq8CuDooaRg8srzPIZDwiLU/pub?gid=817067695&single=true&output=csv';
+
+const CORES = [
+  {bg:'#E6F1FB',text:'#0C447C',bar:'#378ADD'},
+  {bg:'#E1F5EE',text:'#085041',bar:'#1D9E75'},
+  {bg:'#EEEDFE',text:'#3C3489',bar:'#7F77DD'},
+  {bg:'#FAEEDA',text:'#854F0B',bar:'#BA7517'},
+  {bg:'#FBEAF0',text:'#72243E',bar:'#D4537E'},
+];
+
+let abaAtiva = -1;
+let _vendedores = null;
+
+function fmt(v){ return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+function pct(v,m){ return m>0 ? Math.min(Math.round((v/m)*100),100) : 0; }
+function badgeStatus(p){
+  if(p>=100) return ['badge-green','Meta batida'];
+  if(p>=60)  return ['badge-amber','Em andamento'];
+  return ['badge-red','Atenção'];
+}
+
+function parseCSV(txt){
+  const rows = [];
+  const linhas = txt.trim().split('\n');
+  for(const l of linhas){
+    const cols = [];
+    let cur='', inQ=false;
+    for(let i=0;i<l.length;i++){
+      if(l[i]==='"'){inQ=!inQ;continue;}
+      if(l[i]===','&&!inQ){cols.push(cur.trim());cur='';continue;}
+      cur+=l[i];
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  }
+  return rows;
+}
+
+function parseValor(s){
+  if(!s) return 0;
+  const limpo = s.replace(/[R$\s]/g,'').trim();
+  if(limpo.includes(',')&&limpo.includes('.'))
+    return parseFloat(limpo.replace(/\./g,'').replace(',','.')) || 0;
+  if(limpo.includes(',')&&!limpo.includes('.'))
+    return parseFloat(limpo.replace(',','.')) || 0;
+  return parseFloat(limpo) || 0;
+}
+
+function isLixo(s){
+  if(!s) return true;
+  const t = s.toLowerCase().trim();
+  return t==='' || t==='vendedor' || t.includes('meta') || t.includes('preencha') ||
+         t.includes('resumo') || t.includes('gerado') || t.includes('faturamento') ||
+         t.includes('preenchida');
+}
+
+async function carregar(){
+  document.getElementById('conteudo').innerHTML='<div class="loading">Atualizando dados...</div>';
+  document.getElementById('atualizado').textContent='';
+  try {
+    const [rv, rm] = await Promise.all([
+      fetch(URL_VENDAS).then(r=>r.text()),
+      fetch(URL_METAS).then(r=>r.text())
+    ]);
+
+    const linhasV = parseCSV(rv);
+    const linhasM = parseCSV(rm);
+    const dados = {};
+
+    // Metas: A=Vendedor, B=Cliente, C=Meta
+    for(const row of linhasM){
+      const v=(row[0]||'').trim();
+      const c=(row[1]||'').trim();
+      const mt=parseValor(row[2]||'0');
+      if(isLixo(v)||isLixo(c)||mt<=0) continue;
+      if(!dados[v]) dados[v]={clientes:{}};
+      if(!dados[v].clientes[c]) dados[v].clientes[c]={vendido:0,meta:0};
+      dados[v].clientes[c].meta+=mt;
+    }
+
+    // Vendas: A=Vendedor, B=Cliente, C=Valor (aba Vendas_Dashboard)
+    for(let i=1;i<linhasV.length;i++){
+      const row=linhasV[i];
+      const v=(row[0]||'').trim();
+      const c=(row[1]||'').trim();
+      const val=parseValor(row[2]||'0');
+      if(isLixo(v)||isLixo(c)||val<=0) continue;
+      if(!dados[v]) dados[v]={clientes:{}};
+      if(!dados[v].clientes[c]) dados[v].clientes[c]={vendido:0,meta:0};
+      dados[v].clientes[c].vendido+=val;
+    }
+
+    _vendedores = Object.entries(dados)
+      .map(([nome,d])=>({
+        nome,
+        clientes: Object.entries(d.clientes)
+          .map(([cn,cv])=>({nome:cn,...cv}))
+          .sort((a,b)=>b.meta-a.meta)
+      }))
+      .filter(v=>v.clientes.length>0);
+
+    if(_vendedores.length===0){
+      document.getElementById('conteudo').innerHTML='<div class="loading">Planilha conectada!<br>Verifique se as abas <strong>Vendas_Dashboard</strong> e <strong>Metas</strong> estão preenchidas corretamente.</div>';
+      return;
+    }
+
+    renderDash();
+    const agora=new Date();
+    document.getElementById('atualizado').textContent=
+      'Atualizado às '+agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+
+      ' · '+_vendedores.length+' vendedores · '+
+      _vendedores.reduce((s,v)=>s+v.clientes.length,0)+' clientes';
+
+  } catch(e){
+    document.getElementById('conteudo').innerHTML=
+      `<div class="erro">Não foi possível carregar os dados.<br>
+      Verifique se a planilha está publicada publicamente.<br><br>
+      <small>${e.message}</small></div>`;
+  }
+}
+
+function renderDash(){
+  if(!_vendedores) return;
+  const totalV=_vendedores.reduce((s,v)=>s+v.clientes.reduce((a,c)=>a+c.vendido,0),0);
+  const totalM=_vendedores.reduce((s,v)=>s+v.clientes.reduce((a,c)=>a+c.meta,0),0);
+  const totalP=pct(totalV,totalM);
+  const [sc,st]=badgeStatus(totalP);
+  const sg=document.getElementById('status-geral');
+  sg.className='badge badge-status '+sc; sg.textContent=st; sg.style.display='';
+
+  let html=`<div class="cards">
+    <div class="card"><div class="card-label">Total vendido</div><div class="card-val">${fmt(totalV)}</div><div class="card-sub">este mês</div></div>
+    <div class="card"><div class="card-label">Meta total</div><div class="card-val">${fmt(totalM)}</div><div class="card-sub">somando todos</div></div>
+    <div class="card"><div class="card-label">Progresso</div><div class="card-val">${totalP}%</div><div class="card-sub">da meta geral</div></div>
+    <div class="card"><div class="card-label">Faltam</div><div class="card-val">${totalV>=totalM?'Batida!':fmt(totalM-totalV)}</div><div class="card-sub">para meta geral</div></div>
+  </div>`;
+
+  html+=`<div class="tabs">`;
+  html+=`<button class="tab ${abaAtiva===-1?'active':''}" onclick="setAba(-1,this)">Todos</button>`;
+  _vendedores.forEach((v,i)=>{
+    html+=`<button class="tab ${abaAtiva===i?'active':''}" onclick="setAba(${i},this)">${v.nome.split(' ')[0]}</button>`;
+  });
+  html+=`</div>`;
+
+  const lista=abaAtiva===-1?_vendedores.map((_,i)=>i):[abaAtiva];
+  lista.forEach(i=>{
+    const v=_vendedores[i],c=CORES[i%CORES.length];
+    const tv=v.clientes.reduce((s,cl)=>s+cl.vendido,0);
+    const tm=v.clientes.reduce((s,cl)=>s+cl.meta,0);
+    const tp=pct(tv,tm);
+    const ini=v.nome.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+    const clienteRows=v.clientes.map(cl=>{
+      const cp=pct(cl.vendido,cl.meta);
+      const [cbc,cbt]=badgeStatus(cp);
+      return `<div class="client-row">
+        <span class="client-name">${cl.nome}</span>
+        <div class="client-bar-bg"><div class="client-bar-fill" style="width:${cp}%;background:${c.bar}"></div></div>
+        <div class="client-vals">
+          <span style="font-weight:600;min-width:34px;text-align:right">${cp}%</span>
+          <span style="color:#999;font-size:11px">${fmt(cl.vendido)} / ${fmt(cl.meta)}</span>
+          <span class="badge ${cbc}" style="font-size:10px;padding:1px 6px">${cbt}</span>
+        </div>
+      </div>`;
+    }).join('');
+    html+=`<div class="seller-card">
+      <div class="seller-header">
+        <div class="avatar" style="background:${c.bg};color:${c.text}">${ini}</div>
+        <div>
+          <div class="seller-name">${v.nome}</div>
+          <div class="seller-total">${fmt(tv)} vendido de ${fmt(tm)} — ${v.clientes.length} cliente${v.clientes.length>1?'s':''}</div>
+        </div>
+        <div class="seller-pct" style="color:${c.bar}">${tp}%</div>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${tp}%;background:${c.bar}"></div></div>
+      <div class="client-list">${clienteRows}</div>
+    </div>`;
+  });
+
+  document.getElementById('conteudo').innerHTML=html;
+}
+
+function setAba(i,btn){
+  abaAtiva=i;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderDash();
+}
+
+carregar();
+</script>
+</body>
+</html>
