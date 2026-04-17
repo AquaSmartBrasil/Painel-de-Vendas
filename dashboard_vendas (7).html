@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Comercial — AquaSmart</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh}
+.header{background:#185FA5;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.header-titulo{font-size:18px;font-weight:700;letter-spacing:0.5px}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.btn-login{background:#fff;color:#185FA5}
+.btn-atualizar{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4)}
+.badge-auth{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600}
+.auth-ok{background:#1D9E75;color:#fff}
+.auth-no{background:#E24B4A;color:#fff}
+.nav{background:#fff;border-bottom:1px solid #e0e0e0;padding:0 20px;display:flex;gap:0;overflow-x:auto}
+.nav-tab{font-size:13px;padding:12px 18px;cursor:pointer;border-bottom:3px solid transparent;color:#666;white-space:nowrap;font-weight:500}
+.nav-tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:700}
+.main{padding:16px 20px;max-width:1400px;margin:0 auto}
+.periodo-bar{background:#fff;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid #e0e0e0}
+.periodo-label{font-size:12px;color:#666;font-weight:600}
+.periodo-btn{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555}
+.periodo-btn.active{background:#185FA5;color:#fff;border-color:#185FA5}
+.periodo-custom{display:flex;gap:6px;align-items:center;font-size:12px;color:#666}
+.periodo-custom input{font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;width:110px}
+.resumo-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.rcard{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #e0e0e0}
+.rcard-label{font-size:11px;color:#888;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px}
+.rcard-val{font-size:22px;font-weight:700;color:#1a1a1a}
+.rcard-sub{font-size:11px;color:#999;margin-top:4px}
+.rcard-prog{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-top:8px}
+.rcard-prog-fill{height:100%;border-radius:3px;transition:width .5s}
+.secao{background:#fff;border-radius:10px;border:1px solid #e0e0e0;margin-bottom:16px;overflow:hidden}
+.secao-header{padding:14px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.secao-titulo{font-size:14px;font-weight:700;color:#1a1a1a}
+.secao-sub{font-size:12px;color:#888}
+.vendedor-tabs{display:flex;gap:6px;padding:12px 18px 0;flex-wrap:wrap}
+.vtab{font-size:12px;padding:5px 14px;border-radius:6px;border:1px solid #ddd;background:#f8f8f8;cursor:pointer;color:#666}
+.vtab.active{background:#185FA5;color:#fff;border-color:#185FA5;font-weight:600}
+.vendedor-content{padding:14px 18px}
+.pilar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:14px}
+.pilar{border-radius:8px;padding:14px;border:1px solid #e8e8e8}
+.pilar-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.pilar-nome{font-size:12px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:0.4px}
+.pilar-pct{font-size:20px;font-weight:700}
+.pilar-nums{font-size:12px;color:#777;margin-bottom:8px}
+.pilar-bar{height:8px;background:#eee;border-radius:4px;overflow:hidden}
+.pilar-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.pilar-meta-edit{font-size:10px;color:#185FA5;cursor:pointer;margin-top:4px;display:inline-block}
+.meta-edit-wrap{display:none;margin-top:6px;gap:4px;align-items:center}
+.meta-edit-wrap.show{display:flex}
+.meta-edit-wrap input{width:110px;font-size:12px;padding:3px 6px;border:1px solid #185FA5;border-radius:4px}
+.meta-edit-wrap button{font-size:11px;padding:3px 8px;border-radius:4px;border:none;background:#185FA5;color:#fff;cursor:pointer}
+.meta-edit-wrap button.cx{background:#ccc;color:#333}
+.clientes-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.clientes-table th{background:#f5f5f5;padding:7px 10px;text-align:left;font-weight:600;color:#555;border-bottom:1px solid #eee}
+.clientes-table th:not(:first-child){text-align:right}
+.clientes-table td{padding:6px 10px;border-bottom:1px solid #f8f8f8;color:#444}
+.clientes-table td:not(:first-child){text-align:right}
+.clientes-table tr:hover td{background:#fafafa}
+.cli-bar-wrap{display:flex;align-items:center;gap:6px}
+.cli-bar-bg{flex:1;height:4px;background:#eee;border-radius:2px;overflow:hidden;min-width:40px}
+.cli-bar-f{height:100%;border-radius:2px}
+.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.bg{background:#EAF3DE;color:#3B6D11}
+.ba{background:#FAEEDA;color:#854F0B}
+.br{background:#FCEBEB;color:#A32D2D}
+.bw{background:#E6F1FB;color:#0C447C}
+.loading{text-align:center;padding:3rem;color:#888;font-size:14px}
+.erro{text-align:center;padding:2rem;color:#c00;font-size:13px;background:#fff8f8;border-radius:8px}
+.nologin{text-align:center;padding:3rem}
+.nologin h3{color:#185FA5;margin-bottom:8px}
+.nologin p{color:#888;font-size:13px;margin-bottom:16px}
+.btn-grande{font-size:14px;padding:10px 24px;border-radius:8px;border:none;cursor:pointer;font-weight:600;background:#185FA5;color:#fff}
+.rodape{text-align:center;font-size:11px;color:#aaa;padding:12px}
+.sem-meta{color:#BA7517;font-style:italic}
+.novo-cliente{background:#E6F1FB;color:#0C447C;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;margin-left:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-titulo">Dashboard Comercial — AquaSmart</span>
+  <div class="header-right">
+    <span class="badge-auth auth-no" id="badge-auth">Desconectado</span>
+    <button class="btn btn-login" id="btn-login" onclick="fazerLogin()">Conectar Conta Azul</button>
+    <button class="btn btn-atualizar" onclick="carregar()">Atualizar</button>
+    <span style="font-size:11px;color:rgba(255,255,255,0.7)" id="ultima-atualizacao"></span>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-tab active" onclick="setSecao('geral',this)">Visão Geral</div>
+  <div class="nav-tab" onclick="setSecao('vendedores',this)">Por Vendedor</div>
+  <div class="nav-tab" onclick="setSecao('clientes',this)">Por Cliente</div>
+  <div class="nav-tab" onclick="setSecao('metas',this)">Configurar Metas</div>
+</div>
+
+<div class="main">
+  <div class="periodo-bar">
+    <span class="periodo-label">Período:</span>
+    <button class="periodo-btn active" onclick="setPeriodo('mes',this)">Este mês</button>
+    <button class="periodo-btn" onclick="setPeriodo('trimestre',this)">Trimestre</button>
+    <button class="periodo-btn" onclick="setPeriodo('ano',this)">Este ano</button>
+    <div class="periodo-custom">
+      <span>De</span>
+      <input type="date" id="dt-inicio">
+      <span>até</span>
+      <input type="date" id="dt-fim">
+      <button class="periodo-btn" onclick="setPeriodo('custom',this)">Aplicar</button>
+    </div>
+  </div>
+
+  <div id="conteudo"><div class="loading">Conecte o Conta Azul para ver os dados em tempo real.</div></div>
+</div>
+
+<div class="rodape" id="rodape"></div>
+
+<script>
+const STATS_HIST = {"Bruno Braga":{"valor_medio":79498.18,"itens_medio":2082,"clientes_medio":49},"Cauan":{"valor_medio":21784.21,"itens_medio":621,"clientes_medio":20},"Luiz":{"valor_medio":18692.07,"itens_medio":529,"clientes_medio":15}};
+const CLI_PROP = {"Bruno Braga":{"REEF AQUARIOS CAMPINAS":{"pv":0.057622,"pi":0.040863},"AQUALANDIA AQUARIOS":{"pv":0.055261,"pi":0.050188},"ECOMARINE DOIS":{"pv":0.049442,"pi":0.033539},"MIK AQUARISMO":{"pv":0.037417,"pi":0.027055},"BIXO D AGUA":{"pv":0.033663,"pi":0.033259},"GALPAO ANIMAL AQUATICO":{"pv":0.03123,"pi":0.020692},"ACQUAMARINE":{"pv":0.02598,"pi":0.029256},"MARINHO TOP":{"pv":0.021008,"pi":0.019611},"UNDER THE SEA BRAZIL":{"pv":0.020349,"pi":0.015529},"SEVERO AQUARIOS":{"pv":0.018601,"pi":0.013287},"NACIONAL AQUARIO COMERCIO DE PEIXES ORNAMENTAIS":{"pv":0.018151,"pi":0.040223},"PISCICULTURA ANDRADE":{"pv":0.01742,"pi":0.046906},"PLANETA AQUARIOS LTDA":{"pv":0.017065,"pi":0.012607},"JR CORAIS":{"pv":0.016995,"pi":0.023013},"FISHLAND AQUARIOS":{"pv":0.016113,"pi":0.011647},"PLANETA MARINHO AQUARISMO PROFISSIONAL":{"pv":0.015575,"pi":0.009525},"AQUATICA BRAZIL":{"pv":0.015469,"pi":0.03622},"MONMAR AQUARIUM":{"pv":0.014918,"pi":0.007324},"AQUARIO MOOCA":{"pv":0.013993,"pi":0.012087},"AQUARIOS ESTRELA":{"pv":0.013804,"pi":0.007124},"REEF SANTISTA":{"pv":0.01191,"pi":0.009085},"IPIRANGA PEIXES":{"pv":0.010103,"pi":0.030817},"OH2AQUA":{"pv":0.009654,"pi":0.006644},"AQUADISCOS AQUARISMO":{"pv":0.009517,"pi":0.009725},"REI DOS AQUARIOS":{"pv":0.009461,"pi":0.008925},"DONI AQUARISMO":{"pv":0.008944,"pi":0.008045},"OSCAR ALBERTO":{"pv":0.008638,"pi":0.016169},"OCEAN REEF AQUARIOS LTDA":{"pv":0.008337,"pi":0.007004},"MUNDO AZUL":{"pv":0.008169,"pi":0.009565},"BLUE REEF":{"pv":0.007892,"pi":0.006804},"HUGO ROGERIO DE MORAES-ME":{"pv":0.007511,"pi":0.01697},"A SAO PAULO":{"pv":0.007406,"pi":0.001361},"MEGA ANIMAL PET SHOP":{"pv":0.007288,"pi":0.009445},"TERRA DOS PEIXES ORNAMENTAIS LTDA":{"pv":0.007173,"pi":0.020892},"AQUAMUNDY SJC":{"pv":0.007018,"pi":0.006364},"BIOMAQUARISMO":{"pv":0.007011,"pi":0.006083},"DIEGO FERNANDES SILVA":{"pv":0.006901,"pi":0.010886},"PEQUENO REEF":{"pv":0.006874,"pi":0.005843},"YOUR REEF STORE":{"pv":0.006844,"pi":0.007364},"MAR E MAR AQUARIOS":{"pv":0.006641,"pi":0.009205},"NATUREXOTICA AQUARISMO & ANIMAIS EXOTICOS":{"pv":0.006501,"pi":0.005443},"FUNDO DO MAR AQUARIOS":{"pv":0.005554,"pi":0.008285},"AQUATICUS DESIGN":{"pv":0.005474,"pi":0.005803},"ISAMARA GOMES DOS SANTOS":{"pv":0.005435,"pi":0.002802},"AQUARIO WAY":{"pv":0.005361,"pi":0.004523},"MAURICIO SAUERESSIG":{"pv":0.005332,"pi":0.002161},"REEF BROTHERS":{"pv":0.005213,"pi":0.004843},"ECOTROPICAL SC":{"pv":0.005085,"pi":0.005043},"REEF AQUARIOS CAMPINAS - SP":{"pv":0.004796,"pi":0.003682},"TH AQUARISMO":{"pv":0.004768,"pi":0.006083},"DG REEF AQUARISMO":{"pv":0.004764,"pi":0.004082},"AQUA STILO":{"pv":0.004745,"pi":0.007764},"PET SUBMERSO LTDA":{"pv":0.004669,"pi":0.003602},"FLORA E FISH AQUARIOS LTDA ME":{"pv":0.004593,"pi":0.003842},"PLANET FISH PIRACICABA":{"pv":0.00458,"pi":0.005323},"CRIADOR E CIA PET SHOP":{"pv":0.004574,"pi":0.003402},"FISH NATURE":{"pv":0.004563,"pi":0.003682},"AQUARICAMP":{"pv":0.004543,"pi":0.005083},"AQUARISMO BRASILEIRO":{"pv":0.00454,"pi":0.002962},"UNIVERSO SUBMERSO":{"pv":0.004326,"pi":0.007604},"TOP CORAL REEF":{"pv":0.004297,"pi":0.002802},"CASA DOS AQUARIOS":{"pv":0.004202,"pi":0.005803},"ALOHA AQUARISMO":{"pv":0.004135,"pi":0.004603},"BIO AQUA":{"pv":0.003878,"pi":0.002762},"TRIBO AQUARISMO":{"pv":0.00386,"pi":0.005003},"PEIXE 4 YOU":{"pv":0.00376,"pi":0.003722},"FIFOS SERVIÇOS E MANUTENÇÃO":{"pv":0.003715,"pi":0.002802},"REEF MORINI":{"pv":0.003633,"pi":0.001441},"PET FUN":{"pv":0.003601,"pi":0.003642},"NEW REEF BRASIL":{"pv":0.0036,"pi":0.002481},"ROBERTO TADAYOSHI MATSUMOTO":{"pv":0.003522,"pi":0.001681},"AQUA RIO AQUARIO":{"pv":0.003448,"pi":0.0006},"DAITHIMAR AQUARIOS E PEIXES ORNAMENTAIS LTDA":{"pv":0.003431,"pi":0.004683},"PIRATAS DE AQUÁRIO":{"pv":0.003344,"pi":0.001881},"HOBBY AQUARIOS SM":{"pv":0.003216,"pi":0.002361},"MAXIM ADMINISTRACAO":{"pv":0.003202,"pi":0.00016},"REEF OPEN SEA":{"pv":0.003139,"pi":0.002682},"ACQUA RECIFE":{"pv":0.003101,"pi":0.002922},"ZOOMARINE AQUARIOS":{"pv":0.003069,"pi":0.002361},"PARCAS REEF":{"pv":0.00303,"pi":0.002441},"LEANDRO VARELLA":{"pv":0.002981,"pi":0.001161},"DK FISH STORE LTDA":{"pv":0.002897,"pi":0.002281},"PATAS E NADADEIRAS PET SHOP E AQUARISMO":{"pv":0.002894,"pi":0.002641},"PEIXE PILOTO":{"pv":0.002885,"pi":0.001841},"ADAK AQUARIUM DESIGN":{"pv":0.002852,"pi":0.003882},"AQUAPET MG":{"pv":0.002716,"pi":0.002802},"BRA REEF TANK":{"pv":0.002712,"pi":0.001401},"TRIBUREEF":{"pv":0.002616,"pi":0.004002},"JAUREEF":{"pv":0.002547,"pi":0.002521},"FELIPE RUSSO BARREIRA":{"pv":0.002516,"pi":0.00032},"AQUAPET CENTER CAMPO GRANDE":{"pv":0.002505,"pi":0.004883},"BOI FORTE PET SHOP E AGROPECUARIA":{"pv":0.002495,"pi":0.003202},"OCEAN CLUB":{"pv":0.002449,"pi":0.003082},"SEAMARINEE":{"pv":0.002448,"pi":0.001961},"EMPORIO DOS PEIXES E AQUARIOS":{"pv":0.002446,"pi":0.001961},"STANIVET AQUAPET":{"pv":0.002427,"pi":0.002281},"ANGEL FISH":{"pv":0.002291,"pi":0.002401},"AQUARIO DO CENTRO":{"pv":0.002285,"pi":0.004883},"J AQUARIOS":{"pv":0.002245,"pi":0.002321},"LUCIANO DE ALMEIDA BRAGA NETO":{"pv":0.002058,"pi":0.002922},"VIDA MARINHA AQUARIUM":{"pv":0.001961,"pi":0.001441},"ANJOS CLINICA VETERINAIA E PET SHOP":{"pv":0.001927,"pi":0.001801},"RENATO XAVIER SOARES":{"pv":0.001896,"pi":0.002521},"REEFS STORE":{"pv":0.001818,"pi":0.002081},"ALEXANDRE BRAGA":{"pv":0.001813,"pi":0.001721},"SAO JORGE AQUICULTURA":{"pv":0.001772,"pi":0.001041},"AQUAMUNDI BAURU":{"pv":0.001766,"pi":0.001201},"ENVART AQUARISMO E PLANTAS":{"pv":0.001716,"pi":0.001201},"AQUARIUS HOBBY CAMPINAS":{"pv":0.00168,"pi":0.001401},"DINHOS REEF":{"pv":0.001624,"pi":0.001481},"NUTRIAQUA AQUARISMO":{"pv":0.001621,"pi":0.001361},"AQUARIUS SHOW":{"pv":0.001618,"pi":0.001921},"AQUA MAR FREDSON":{"pv":0.001577,"pi":0.00052},"AQUAKING FLAVIO DANTAS":{"pv":0.001572,"pi":0.002561},"S & B MUNDO AQUATICO":{"pv":0.001525,"pi":0.001481},"EDUARDO DE MATOS JESUS":{"pv":0.001487,"pi":0.002281},"REEF TANK":{"pv":0.001471,"pi":0.001721},"AQUARIOMANIA E MANIA DO SEU AQUARIO":{"pv":0.001455,"pi":0.002441},"AQUARIOS E CIA":{"pv":0.001447,"pi":0.00068},"TOCA DA SARDINHA":{"pv":0.001431,"pi":0.001201},"SHRIMPS":{"pv":0.001428,"pi":0.001041},"COMERCIAL SANTAREM":{"pv":0.001428,"pi":0.001041},"AQUA ZOO AQUARISMO":{"pv":0.001409,"pi":0.001761},"SAFARI REEF":{"pv":0.001401,"pi":0.001681},"CORAL.INC":{"pv":0.001397,"pi":0.001281},"MAURICIO ALEXANDRE ALVES":{"pv":0.001389,"pi":0.0002},"LUCAS MIRANDA DE PAULA":{"pv":0.001373,"pi":0.00056},"AGROSETE SUMARÉ":{"pv":0.00136,"pi":0.002281},"ONE FISH":{"pv":0.001341,"pi":0.001281},"AQUARIOS 5 ESTRELAS":{"pv":0.001304,"pi":0.001321},"ACQUA HOUSE":{"pv":0.001263,"pi":0.001241},"REEF IN FARM":{"pv":0.001255,"pi":0.0008},"PET MANIA DE BICHO":{"pv":0.001253,"pi":0.001081},"AMADIÊ REEF AQUARISMO MARINHO":{"pv":0.001219,"pi":0.001561},"ARTE AQUARIOS":{"pv":0.00121,"pi":0.00072},"YAMAOKI FISH":{"pv":0.001196,"pi":0.001081},"MAURICIO FERNANDES RIBEIRO":{"pv":0.001184,"pi":0.00044},"CASA DO AQUARISTA":{"pv":0.001181,"pi":0.00076},"CAES & GATOS":{"pv":0.001146,"pi":0.00072},"R.R.P. PEIXES":{"pv":0.001138,"pi":0.00072},"AQUADOM COMERCIO E SERVICO":{"pv":0.001121,"pi":0.001161},"CRISTIANO PATRICK DO VALE":{"pv":0.001089,"pi":0.001721},"RAFAEL GRANERO":{"pv":0.001088,"pi":0.00072},"PAPO DE MARINHO":{"pv":0.001083,"pi":0.001001},"CASCAVEL REEF":{"pv":0.001067,"pi":0.000921},"ESPACO DOGUNA":{"pv":0.001064,"pi":0.00088},"DEEP SEA MARINE AQUARIUM":{"pv":0.001047,"pi":0.00076},"ANIMAL BIT":{"pv":0.001027,"pi":0.0006},"WAGNER BONILHA":{"pv":0.001002,"pi":0.00068},"FISH MARINE":{"pv":0.000985,"pi":0.001401},"AQQUA DESIGN":{"pv":0.000982,"pi":0.001081},"MARINE ZONE":{"pv":0.000969,"pi":0.00088},"MARCELO YUKIO SATO":{"pv":0.000964,"pi":0.00028},"OCEANS PET":{"pv":0.000964,"pi":0.00088},"FISH BROTHERS":{"pv":0.000933,"pi":0.0008},"SEA LIFE AQUARIOS":{"pv":0.000878,"pi":0.0008},"HOBBY CENTER AQUARIOS UBERLÂNDIA":{"pv":0.00087,"pi":0.00064},"KAIROS REEF":{"pv":0.000843,"pi":0.00044},"AXE ON LINE":{"pv":0.000823,"pi":0.002601},"BROTHER_REEF":{"pv":0.000819,"pi":0.0008},"OCEANICA AQUARISMO":{"pv":0.0008,"pi":0.000921},"KAWAFISH LOJA 02":{"pv":0.00078,"pi":0.001201},"KAWAFISH LOJA 01":{"pv":0.00078,"pi":0.001201},"OCEANIC ATRATIVOS TURÍSTICOS S/A":{"pv":0.000765,"pi":0.001041},"STUDIOAQUA CORALMANIA":{"pv":0.000761,"pi":0.00072},"ANDERSON K YAGI":{"pv":0.000757,"pi":0.001161},"MARCA DAGUA":{"pv":0.000739,"pi":0.00024},"MAURINO GOMES DE OLIVEIRA":{"pv":0.000714,"pi":0.0006},"RICIERI CAVALCANTE":{"pv":0.000706,"pi":0.00028},"MIX MARINE":{"pv":0.000702,"pi":0.00088},"GUSTAVO SILVA LUGON":{"pv":0.000692,"pi":8e-05},"SAO FRANCISCO RACOES BANHO E TOSA":{"pv":0.000667,"pi":0.0006},"ANDRE LUIZ TYSZKA":{"pv":0.000655,"pi":0.00044},"AQUA JUMBO VR":{"pv":0.000654,"pi":0.00036},"GALERIA OCEANICA COM DE ANIMAIS LTDA":{"pv":0.000644,"pi":0.00056},"AQUALIFE PET STORE PR":{"pv":0.000591,"pi":0.0004},"JK AQUARIO VINHEDO":{"pv":0.000586,"pi":0.001081},"MIAMI REEF":{"pv":0.000584,"pi":0.0008},"ANIMAL KINGDOM STORE":{"pv":0.000574,"pi":0.00056},"COLEGIO DANTE ALIGHIERI":{"pv":0.000568,"pi":0.00032},"MYSTIC REEF BRASIL":{"pv":0.000548,"pi":0.0004},"RR AQUÁRIOS ORNAMENTAIS E ACESSORIOS":{"pv":0.000542,"pi":0.0004},"VBIO ACQUA LTDA":{"pv":0.000533,"pi":0.000961},"JOSE IZAIAS GALDINO":{"pv":0.000529,"pi":0.00024},"ABILIO LORENÇO MACHADO NETO":{"pv":0.000526,"pi":0.0004},"NILTON CESAR DOS SANTOS":{"pv":0.000524,"pi":0.001001},"AGAPEAQUARISMO":{"pv":0.000523,"pi":0.0004},"REEF POINT":{"pv":0.000502,"pi":0.0002},"MOURA REEF":{"pv":0.000488,"pi":0.0006},"WILSON VICENTE CARVALHO JUNIOR":{"pv":0.000485,"pi":0.00068},"AQUARIUM PLAZA":{"pv":0.00048,"pi":0.00052},"SAMUEL VIEIRA CONSTANTE":{"pv":0.00048,"pi":0.0002},"KR AQUARIOS":{"pv":0.000451,"pi":0.00032},"MURILO FERNANDES DE MELO DANTAS":{"pv":0.000451,"pi":0.00016},"ALEX BOROSKI":{"pv":0.000446,"pi":0.00024},"ANTONIO DUARTE":{"pv":0.000445,"pi":0.00048},"RS DISCUS AQUARIOS":{"pv":0.000421,"pi":0.00064},"MYKE MARINHOS":{"pv":0.000393,"pi":0.00048},"FERNANDO NAGANI WERTHEIMER":{"pv":0.000387,"pi":0.00012},"FELIPE DE MATTOS FERREGUTTI":{"pv":0.000383,"pi":0.00016},"CORAL CLUB":{"pv":0.000326,"pi":0.00044},"ARTHUR JANCAR WALLIS":{"pv":0.000314,"pi":4e-05},"DANIEL VIEIRA TACLA":{"pv":0.000241,"pi":0.00012},"MUNICIPIO DE SANTOS":{"pv":0.00021,"pi":0.00012},"GIOVANNI KRZIZANSKI SEGUSO":{"pv":0.000199,"pi":0.00012},"HIPPOCAMPUS AQUICULTURA, PESQUISA E CONSERVACAO MARINHA LTDA":{"pv":0.000176,"pi":8e-05},"RAFAEL BARBI":{"pv":0.000147,"pi":0.00012},"WGRIF LTDA.":{"pv":0.000147,"pi":0.00024},"LUIZ FELIPE GUIMARÃES DE SOUZA GOULART":{"pv":0.000136,"pi":4e-05},"EDUARDO KAZUYUKI KOGA":{"pv":0.000136,"pi":4e-05},"GABRIEL CLAUDINO MANOEL":{"pv":0.000131,"pi":8e-05},"AQUA CALMAR":{"pv":0.000126,"pi":0.00024},"INEZ AMÉLIA POLICARPO DE SOUZA FRAGA":{"pv":0.000105,"pi":4e-05},"ROBERTO GOMES PADILHA":{"pv":9.4e-05,"pi":4e-05},"GUSTAVO ADOLFO PESCIALLO":{"pv":9.4e-05,"pi":4e-05},"ALEXANDRE SALOMÃO BROSSO":{"pv":9.4e-05,"pi":8e-05},"LUCIANA DIVINA DE CARVALHO":{"pv":8.9e-05,"pi":0.00016},"STELLA NADIA TORRES":{"pv":7.8e-05,"pi":0.0002}},"Cauan":{"ARY DOS PALHAÇOS":{"pv":0.106384,"pi":0.078037},"JK AQUARISMO":{"pv":0.059906,"pi":0.092384},"AQUAMAZING FISH STORE":{"pv":0.0527,"pi":0.035935},"REEF LIFE":{"pv":0.052328,"pi":0.050684},"RMT LTDA":{"pv":0.050302,"pi":0.036337},"EMPÓRIO AQUÁTICO":{"pv":0.035908,"pi":0.02856},"ACORES REEF LTDA":{"pv":0.025381,"pi":0.008715},"ABISMO SUBMERSO":{"pv":0.024888,"pi":0.023197},"O SENHOR DOS AQUARIOS & PETSHOP":{"pv":0.022398,"pi":0.033253},"AQUAVILA COMERCIO":{"pv":0.021036,"pi":0.01019},"JN AQUARISMO":{"pv":0.020294,"pi":0.032314},"MARINHO TOP":{"pv":0.018094,"pi":0.011531},"VL AQUARISMO":{"pv":0.017685,"pi":0.01971},"AQUARIUM LIFE":{"pv":0.01766,"pi":0.015822},"AQUAPORANGA":{"pv":0.017421,"pi":0.012738},"STARFISH AQUÁRIOS":{"pv":0.017203,"pi":0.016761},"NOVA ONDA AQUARIUM PERDIZES":{"pv":0.016767,"pi":0.013006},"AQUÁRIOS MANIA":{"pv":0.016495,"pi":0.016224},"FISH TOP":{"pv":0.015784,"pi":0.016761},"ADRIANO CORAIS":{"pv":0.014724,"pi":0.01247},"ZOO PLACE":{"pv":0.014069,"pi":0.013677},"MAGNIFIC REEF":{"pv":0.012111,"pi":0.014749},"AQUAGARDEN AQUARISMO":{"pv":0.011105,"pi":0.009386},"ACQUA HELP":{"pv":0.010696,"pi":0.008581},"AQUA NATURE PEIXES ORNAMENTAIS":{"pv":0.010562,"pi":0.012202},"OCEANIC ATRATIVOS TURÍSTICOS S/A":{"pv":0.010463,"pi":0.013408},"AQUALIFE PET STORE PR":{"pv":0.010428,"pi":0.010593},"AQUARISMO MUNDO ANIMAL LIMEIRA":{"pv":0.010244,"pi":0.010593},"R.R. OCEAN REEF":{"pv":0.010164,"pi":0.054438},"ATLANTIDA AQUARIOS LTDA":{"pv":0.00982,"pi":0.013006},"BOX FISH":{"pv":0.009678,"pi":0.00067},"DINIZFLA AQUARISMO":{"pv":0.00964,"pi":0.010459},"BIO REEF MG":{"pv":0.009273,"pi":0.012202},"REEFLAND":{"pv":0.008144,"pi":0.007509},"RECYCLEDREEF":{"pv":0.008098,"pi":0.013274},"AQUA ART":{"pv":0.008095,"pi":0.009118},"ZOOFISH AQUARIOS E LAGOS":{"pv":0.00788,"pi":0.008581},"REEF ALMEIDA":{"pv":0.007429,"pi":0.005363},"BICHO D AGUA PEIXES ORNAMENTAIS":{"pv":0.007157,"pi":0.009922},"NORTICO FISH":{"pv":0.007077,"pi":0.007777},"AQUAMUNDI AQUARISMO":{"pv":0.007012,"pi":0.0059},"AQUAMARES":{"pv":0.006942,"pi":0.002279},"PEDACINHO DO MAR":{"pv":0.006928,"pi":0.006704},"JAPAN AQUARIO":{"pv":0.006691,"pi":0.007375},"WAGNER BONILHA":{"pv":0.006469,"pi":0.004559},"PH AQUARISMO MARINHO":{"pv":0.006098,"pi":0.006168},"AQUAPROJECT AQUARISMO COM ESTILO":{"pv":0.006075,"pi":0.003352},"PROIBIDO PESCAR":{"pv":0.00596,"pi":0.009118},"AQUARISMO SANTOS":{"pv":0.005891,"pi":0.009922},"AQUAPRIME AQUARISMO":{"pv":0.00578,"pi":0.009386},"DOCTOR FISH AQUARISMO":{"pv":0.005421,"pi":0.003218},"AQUA REEF":{"pv":0.005356,"pi":0.004425},"ALE REEF":{"pv":0.00505,"pi":0.009386},"ARAGUAIA AQUARIUS":{"pv":0.00451,"pi":0.010861},"ANTONIO DUARTE":{"pv":0.004472,"pi":0.002548},"ZOOAQUA PEIXES E PLANTAS ORNAMENTAIS":{"pv":0.004208,"pi":0.002414},"AQUÁRIO SIMÕES":{"pv":0.004135,"pi":0.004961},"BIOMAXI ECOSSISTEMAS":{"pv":0.003845,"pi":0.003754},"REEF - LITORAL":{"pv":0.003837,"pi":0.007777},"CEDRIQUE ANTÔNIO DE ARAÚJO":{"pv":0.003825,"pi":0.001341},"MUDARIO MV PEIXES E CORAIS":{"pv":0.003768,"pi":0.001475},"CENTRAL PARK RACOES II":{"pv":0.003703,"pi":0.008447},"ACQUAMARINE MARILIA":{"pv":0.003447,"pi":0.00295},"ÁGUAS DOCES":{"pv":0.003347,"pi":0.004023},"AQUAGARDEN":{"pv":0.003252,"pi":0.001073},"AQUAFOR":{"pv":0.003133,"pi":0.002816},"AQUARISMO SOROCABA":{"pv":0.002919,"pi":0.005095},"VIP REEF RJ":{"pv":0.002881,"pi":0.00362},"AQUATERRA":{"pv":0.002835,"pi":0.002145},"JJ AQUARISMO MANAUS":{"pv":0.002831,"pi":0.00362},"JJ AQUARIUMS":{"pv":0.002831,"pi":0.00362},"CIA DOS CICLIDEOS":{"pv":0.002793,"pi":0.003486},"RUPERTO REEF":{"pv":0.002712,"pi":0.001743},"CISLAGHI AQUARIU S":{"pv":0.002571,"pi":0.00295},"CORAL VIVO":{"pv":0.002498,"pi":0.001877},"MAURINO GOMES DE OLIVEIRA":{"pv":0.002383,"pi":0.001475},"OCEANIC BURGER":{"pv":0.002295,"pi":0.002548},"VET MANIA":{"pv":0.002246,"pi":0.002011},"RCREEF2":{"pv":0.002238,"pi":0.001341},"LSKNUTRI":{"pv":0.00218,"pi":0.000402},"AGROMUR":{"pv":0.002177,"pi":0.003218},"REEF ZONE":{"pv":0.002054,"pi":0.001207},"AQUARIUM MONSTER":{"pv":0.002005,"pi":0.002145},"AQUAFOZ":{"pv":0.001882,"pi":0.001207},"NDR AQUARISMO":{"pv":0.001714,"pi":0.001877},"VICTOR AUGUSTO DA COSTA RODRIGUES":{"pv":0.001645,"pi":0.000536},"PISCICULTURA FERREIRA NETO":{"pv":0.001572,"pi":0.001475},"ISAMARA GOMES DOS SANTOS":{"pv":0.001454,"pi":0.001207},"IMPERIO FISH":{"pv":0.001324,"pi":0.001341},"CAROLINA RANGEL":{"pv":0.001316,"pi":0.000939},"NOE AQUARISMO":{"pv":0.000975,"pi":0.000805},"FRANCO AQUARISMO":{"pv":0.000765,"pi":0.001609},"ACQUA DISTRIBUIDORA":{"pv":0.000264,"pi":0.000134}},"Luiz":{"R.R.P. PEIXES":{"pv":0.163612,"pi":0.118064},"PET FISH AQUARISMO E PET SHOP":{"pv":0.076623,"pi":0.056671},"AQUARISMO ENTRE AMIGOS":{"pv":0.050162,"pi":0.035419},"JAPAN AQUARIO":{"pv":0.047025,"pi":0.046045},"DENIS MARINO":{"pv":0.045427,"pi":0.032586},"MARCOS AURÉLIO MELO DE OLIVEIRA":{"pv":0.043468,"pi":0.166234},"REEF MOGI":{"pv":0.042324,"pi":0.053365},"MIX SHOP EXPRESS":{"pv":0.040655,"pi":0.031641},"PEQUENO GRANDE MAR":{"pv":0.036158,"pi":0.036128},"FISH MARINE":{"pv":0.032688,"pi":0.024793},"MASCOTE":{"pv":0.029859,"pi":0.017946},"AQUA CALMAR":{"pv":0.026943,"pi":0.027391},"CN AQUA PET LTDA":{"pv":0.021496,"pi":0.026446},"ALVORADA AQUARISMO":{"pv":0.017126,"pi":0.015584},"PETMOGI":{"pv":0.016872,"pi":0.015821},"MARE DA SORTE":{"pv":0.015742,"pi":0.014168},"REEF IN FARM":{"pv":0.015254,"pi":0.008737},"MAURINO GOMES DE OLIVEIRA":{"pv":0.015126,"pi":0.009445},"AQUATIC FISH MARINE":{"pv":0.014745,"pi":0.013695},"DANIEL VOLINO GONÇALVES":{"pv":0.013742,"pi":0.047698},"RR AQUÁRIOS ORNAMENTAIS E ACESSORIOS":{"pv":0.013575,"pi":0.014168},"AQUAVIBES OCEAN":{"pv":0.013375,"pi":0.009917},"ALEXANDRE FERREIRA DE OLIVEIRA":{"pv":0.012906,"pi":0.01464},"PIRAPORANGA COMERCIO":{"pv":0.012458,"pi":0.006375},"ECOTOP COMERCIO":{"pv":0.010145,"pi":0.007084},"BERT AQUA":{"pv":0.009991,"pi":0.004723},"ACRE BETTAS":{"pv":0.00959,"pi":0.006848},"COUTO REEF":{"pv":0.008954,"pi":0.004723},"RODRIGO YUDI FUJIMOTO":{"pv":0.008827,"pi":0.004486},"RENAN ODONE":{"pv":0.008319,"pi":0.005195},"AQUA ARTE":{"pv":0.008085,"pi":0.006848},"MEU REEF":{"pv":0.007838,"pi":0.007084},"ANDRADE COMERCIO DE PRODUTOS DE AQUARIOFILIA":{"pv":0.00769,"pi":0.008737},"DREEAM REEF SP":{"pv":0.007624,"pi":0.006848},"AQUAFAMILY MARINHOS":{"pv":0.00751,"pi":0.007084},"LAERCIO DE OLIVEIRA ARRUDA":{"pv":0.007343,"pi":0.004486},"IMPERIO FISH":{"pv":0.006714,"pi":0.006612},"JOSE ANTONIO FERAREZI":{"pv":0.006353,"pi":0.005195},"AQUAMAZING REEFSTORE":{"pv":0.006318,"pi":0.004959},"CORAL REEF 018":{"pv":0.005764,"pi":0.012751},"DE BICHO PRA PET":{"pv":0.005143,"pi":0.004723},"AQUAREEF":{"pv":0.004949,"pi":0.004959},"ARTE&VIDA AQUARISMO":{"pv":0.004895,"pi":0.00425},"PLANETA MARINHO AQUARISMO PROFISSIONAL":{"pv":0.004547,"pi":0.002834},"EDER BRITO DA SILVA":{"pv":0.004293,"pi":0.001889},"CORAL ONLINE":{"pv":0.004193,"pi":0.00307},"ANIMAL BIT":{"pv":0.004079,"pi":0.002597},"LÉO PEIXES":{"pv":0.003711,"pi":0.012515},"MULT PET SUZANO":{"pv":0.003344,"pi":0.003542},"SCAP GARDEN":{"pv":0.003203,"pi":0.001417},"ISAMARA GOMES DOS SANTOS":{"pv":0.002842,"pi":0.001181},"AQUALELO":{"pv":0.002601,"pi":0.001889},"GABRIEL FRANÇOIS":{"pv":0.002287,"pi":0.001417},"AVATAR REFF":{"pv":0.00214,"pi":0.002597},"PETSHOP E AVICULTURA CALIFORNIA":{"pv":0.001398,"pi":0.002361},"COMERCIAL NOGUEIRA - FAZENDA SUBMERSA":{"pv":0.000936,"pi":0.000472},"WALERIANO LEÃO DE MORAES":{"pv":0.000281,"pi":0.000236},"JOHNNY":{"pv":0.000267,"pi":0.000472},"PARCAS REEF":{"pv":0.000267,"pi":0.000472},"DIOS DISCOS":{"pv":0.000194,"pi":0.000472}}};
+
+const WORKER = 'https://aquasmart-api.cassio-58a.workers.dev';
+const VENDEDORES = ['Bruno Braga','Cauan','Luiz'];
+const CORES = {
+  'Bruno Braga':{bg:'#E6F1FB',text:'#0C447C',bar:'#378ADD'},
+  'Cauan':{bg:'#E1F5EE',text:'#085041',bar:'#1D9E75'},
+  'Luiz':{bg:'#EEEDFE',text:'#3C3489',bar:'#7F77DD'},
+};
+
+// Metas editáveis (persistem em memória)
+let METAS = {
+  'Bruno Braga':{valor: STATS_HIST['Bruno Braga'].valor_medio, itens: STATS_HIST['Bruno Braga'].itens_medio, clientes: STATS_HIST['Bruno Braga'].clientes_medio},
+  'Cauan':{valor: STATS_HIST['Cauan'].valor_medio, itens: STATS_HIST['Cauan'].itens_medio, clientes: STATS_HIST['Cauan'].clientes_medio},
+  'Luiz':{valor: STATS_HIST['Luiz'].valor_medio, itens: STATS_HIST['Luiz'].itens_medio, clientes: STATS_HIST['Luiz'].clientes_medio},
+};
+
+let dadosVendas = [];
+let secaoAtiva = 'geral';
+let vendedorAtivo = 'Bruno Braga';
+let periodoAtivo = 'mes';
+let autenticado = false;
+
+function fmt(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR');}
+function fmtN(v){return Math.round(v).toLocaleString('pt-BR');}
+function pct(v,m){return m>0?Math.min(Math.round((v/m)*100),100):0;}
+function bst(p){return p>=100?'bg':p>=60?'ba':'br';}
+function bstTxt(p){return p>=100?'Meta batida':p>=60?'Em andamento':'Atenção';}
+
+function getDatas(){
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth()+1).padStart(2,'0');
+  const dia = String(hoje.getDate()).padStart(2,'0');
+
+  if(periodoAtivo==='mes'){
+    return {inicio:`${ano}-${mes}-01`, fim:`${ano}-${mes}-${dia}`};
+  } else if(periodoAtivo==='trimestre'){
+    const m = hoje.getMonth();
+    const inicioTri = new Date(ano, Math.floor(m/3)*3, 1);
+    return {
+      inicio:`${inicioTri.getFullYear()}-${String(inicioTri.getMonth()+1).padStart(2,'0')}-01`,
+      fim:`${ano}-${mes}-${dia}`
+    };
+  } else if(periodoAtivo==='ano'){
+    return {inicio:`${ano}-01-01`, fim:`${ano}-${mes}-${dia}`};
+  } else {
+    return {
+      inicio: document.getElementById('dt-inicio').value,
+      fim: document.getElementById('dt-fim').value
+    };
+  }
+}
+
+async function verificarAuth(){
+  try{
+    const r = await fetch(`${WORKER}/status`);
+    const d = await r.json();
+    autenticado = d.autenticado;
+    atualizarBadgeAuth();
+    return autenticado;
+  }catch(e){
+    autenticado = false;
+    atualizarBadgeAuth();
+    return false;
+  }
+}
+
+function atualizarBadgeAuth(){
+  const b = document.getElementById('badge-auth');
+  const btn = document.getElementById('btn-login');
+  if(autenticado){
+    b.className='badge-auth auth-ok'; b.textContent='Conectado';
+    btn.textContent='Reconectar';
+  } else {
+    b.className='badge-auth auth-no'; b.textContent='Desconectado';
+    btn.textContent='Conectar Conta Azul';
+  }
+}
+
+async function fazerLogin(){
+  try{
+    const r = await fetch(`${WORKER}/auth-url`);
+    const d = await r.json();
+    window.open(d.url,'_blank','width=600,height=700');
+  }catch(e){
+    alert('Erro ao obter URL de login: '+e.message);
+  }
+}
+
+async function carregar(){
+  const ok = await verificarAuth();
+  if(!ok){
+    document.getElementById('conteudo').innerHTML=`<div class="nologin">
+      <h3>Conecte o Conta Azul</h3>
+      <p>Clique no botão abaixo para autorizar o acesso aos dados de vendas em tempo real.</p>
+      <button class="btn-grande" onclick="fazerLogin()">Conectar Conta Azul</button>
+    </div>`;
+    return;
+  }
+
+  document.getElementById('conteudo').innerHTML='<div class="loading">Carregando dados do Conta Azul...</div>';
+
+  try{
+    const {inicio,fim} = getDatas();
+    const r = await fetch(`${WORKER}/vendas?inicio=${inicio}&fim=${fim}`);
+    const d = await r.json();
+
+    if(d.error){
+      if(d.error.includes('autenticado')||d.error.includes('Token')){
+        autenticado=false; atualizarBadgeAuth();
+        document.getElementById('conteudo').innerHTML=`<div class="nologin">
+          <h3>Sessão expirada</h3><p>Reconecte o Conta Azul para continuar.</p>
+          <button class="btn-grande" onclick="fazerLogin()">Reconectar</button>
+        </div>`;
+        return;
+      }
+      throw new Error(d.error);
+    }
+
+    dadosVendas = d.vendas || [];
+    const agora = new Date();
+    document.getElementById('ultima-atualizacao').textContent =
+      'Atualizado às '+agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('rodape').textContent =
+      dadosVendas.length+' vendas carregadas do Conta Azul';
+
+    renderSecao();
+  }catch(e){
+    document.getElementById('conteudo').innerHTML=`<div class="erro">Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+function processarVendas(vendas){
+  // Agregar por vendedor
+  const res = {};
+  VENDEDORES.forEach(v=>{res[v]={valor:0,itens:0,clientes:new Set(),vendas:[]};});
+
+  vendas.forEach(venda=>{
+    const v = venda.seller?.name || venda.vendedor || '';
+    const cli = venda.customer?.name || venda.cliente || venda.customer_name || '';
+    const valor = parseFloat(venda.net_value||venda.valor_liquido||venda.value||0);
+    const itens = (venda.items||[]).reduce((s,i)=>s+(parseFloat(i.quantity)||0),0) || parseFloat(venda.quantidade_itens||0);
+
+    if(res[v]){
+      res[v].valor+=valor;
+      res[v].itens+=itens;
+      if(cli) res[v].clientes.add(cli);
+      res[v].vendas.push({cli,valor,itens,data:venda.emission||venda.data});
+    }
+  });
+
+  // Converter Set para tamanho
+  VENDEDORES.forEach(v=>{
+    res[v].num_clientes=res[v].clientes.size;
+  });
+
+  return res;
+}
+
+function renderSecao(){
+  if(secaoAtiva==='geral') renderGeral();
+  else if(secaoAtiva==='vendedores') renderVendedores();
+  else if(secaoAtiva==='clientes') renderClientes();
+  else if(secaoAtiva==='metas') renderMetas();
+}
+
+function renderGeral(){
+  const agg = processarVendas(dadosVendas);
+  const totalValor = VENDEDORES.reduce((s,v)=>s+agg[v].valor,0);
+  const totalItens = VENDEDORES.reduce((s,v)=>s+agg[v].itens,0);
+  const totalClientes = new Set(dadosVendas.map(vd=>vd.customer?.name||vd.cliente||'').filter(Boolean)).size;
+  const metaTotalValor = VENDEDORES.reduce((s,v)=>s+METAS[v].valor,0);
+  const metaTotalItens = VENDEDORES.reduce((s,v)=>s+METAS[v].itens,0);
+  const metaTotalCli = VENDEDORES.reduce((s,v)=>s+METAS[v].clientes,0);
+
+  let h=`<div class="resumo-cards">
+    <div class="rcard">
+      <div class="rcard-label">Faturamento</div>
+      <div class="rcard-val">${fmt(totalValor)}</div>
+      <div class="rcard-sub">Meta: ${fmt(metaTotalValor)} (${pct(totalValor,metaTotalValor)}%)</div>
+      <div class="rcard-prog"><div class="rcard-prog-fill" style="width:${pct(totalValor,metaTotalValor)}%;background:#378ADD"></div></div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">Itens vendidos</div>
+      <div class="rcard-val">${fmtN(totalItens)}</div>
+      <div class="rcard-sub">Meta: ${fmtN(metaTotalItens)} (${pct(totalItens,metaTotalItens)}%)</div>
+      <div class="rcard-prog"><div class="rcard-prog-fill" style="width:${pct(totalItens,metaTotalItens)}%;background:#1D9E75"></div></div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">Clientes atendidos</div>
+      <div class="rcard-val">${fmtN(totalClientes)}</div>
+      <div class="rcard-sub">Meta: ${fmtN(metaTotalCli)} (${pct(totalClientes,metaTotalCli)}%)</div>
+      <div class="rcard-prog"><div class="rcard-prog-fill" style="width:${pct(totalClientes,metaTotalCli)}%;background:#7F77DD"></div></div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-label">Total de vendas</div>
+      <div class="rcard-val">${dadosVendas.length}</div>
+      <div class="rcard-sub">pedidos no período</div>
+    </div>
+  </div>`;
+
+  // Cards por vendedor
+  h+=`<div class="secao"><div class="secao-header"><span class="secao-titulo">Desempenho por vendedor</span><span class="secao-sub">3 pilares</span></div><div style="padding:14px 18px">`;
+  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">`;
+
+  VENDEDORES.forEach(v=>{
+    const c=CORES[v],a=agg[v],m=METAS[v];
+    const pv=pct(a.valor,m.valor),pi=pct(a.itens,m.itens),pc=pct(a.num_clientes,m.clientes);
+    const ini=v.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+    h+=`<div style="background:${c.bg};border-radius:10px;padding:14px;border:1px solid ${c.bar}22">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:${c.bar};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${ini}</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:${c.text}">${v}</div>
+          <div style="font-size:11px;color:${c.text};opacity:0.7">${a.num_clientes} clientes atendidos</div>
+        </div>
+      </div>
+      <div class="pilar-grid" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:8px">
+          <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:4px">FATURAMENTO</div>
+          <div style="font-size:15px;font-weight:700;color:${c.text}">${pv}%</div>
+          <div style="font-size:10px;color:#888">${fmt(a.valor)}</div>
+          <div style="height:4px;background:#ddd;border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pv}%;background:${c.bar};border-radius:2px"></div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:8px">
+          <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:4px">ITENS</div>
+          <div style="font-size:15px;font-weight:700;color:${c.text}">${pi}%</div>
+          <div style="font-size:10px;color:#888">${fmtN(a.itens)} itens</div>
+          <div style="height:4px;background:#ddd;border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pi}%;background:${c.bar};border-radius:2px"></div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:8px">
+          <div style="font-size:10px;color:#666;font-weight:600;margin-bottom:4px">CLIENTES</div>
+          <div style="font-size:15px;font-weight:700;color:${c.text}">${pc}%</div>
+          <div style="font-size:10px;color:#888">${a.num_clientes} clientes</div>
+          <div style="height:4px;background:#ddd;border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pc}%;background:${c.bar};border-radius:2px"></div></div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  h+=`</div></div></div>`;
+  document.getElementById('conteudo').innerHTML=h;
+}
+
+function renderVendedores(){
+  const agg = processarVendas(dadosVendas);
+  const c = CORES[vendedorAtivo];
+  const a = agg[vendedorAtivo];
+  const m = METAS[vendedorAtivo];
+  const prop = CLI_PROP[vendedorAtivo]||{};
+
+  // Agregar clientes do vendedor
+  const cliMap = {};
+  dadosVendas.forEach(venda=>{
+    const v=venda.seller?.name||venda.vendedor||'';
+    if(v!==vendedorAtivo) return;
+    const cli=venda.customer?.name||venda.cliente||'';
+    const valor=parseFloat(venda.net_value||venda.valor_liquido||venda.value||0);
+    const itens=(venda.items||[]).reduce((s,i)=>s+(parseFloat(i.quantity)||0),0)||parseFloat(venda.quantidade_itens||0);
+    if(!cli) return;
+    if(!cliMap[cli]) cliMap[cli]={valor:0,itens:0};
+    cliMap[cli].valor+=valor;
+    cliMap[cli].itens+=itens;
+  });
+
+  // Calcular metas por cliente baseadas na proporção histórica
+  const mediaValorCli = m.valor / Math.max(Object.keys(prop).length,1);
+  const mediaItensCli = m.itens / Math.max(Object.keys(prop).length,1);
+
+  // Combinar clientes com vendas + clientes da carteira histórica
+  const todosCli = new Set([...Object.keys(cliMap),...Object.keys(prop)]);
+  const cliArr = [...todosCli].map(cli=>{
+    const p = prop[cli];
+    const metaV = p ? m.valor*p.pv : mediaValorCli;
+    const metaI = p ? m.itens*p.pi : mediaItensCli;
+    const novo = !p;
+    return {
+      nome:cli,
+      valor:cliMap[cli]?.valor||0,
+      itens:cliMap[cli]?.itens||0,
+      metaV, metaI, novo
+    };
+  }).sort((a,b)=>b.metaV-a.metaV);
+
+  const pv=pct(a.valor,m.valor);
+  const pi=pct(a.itens,m.itens);
+  const pc=pct(a.num_clientes,m.clientes);
+
+  let h=`<div class="vendedor-tabs">`;
+  VENDEDORES.forEach(v=>{
+    h+=`<button class="vtab${v===vendedorAtivo?' active':''}" onclick="setVendedor('${v}')">${v.split(' ')[0]}</button>`;
+  });
+  h+=`</div><div class="vendedor-content">`;
+
+  // 3 pilares
+  h+=`<div class="pilar-grid">`;
+  const pilares=[
+    {nome:'Faturamento',val:fmt(a.valor),meta:fmt(m.valor),p:pv,bar:c.bar,pilar:'valor',unid:'R$'},
+    {nome:'Itens vendidos',val:fmtN(a.itens)+' itens',meta:fmtN(m.itens)+' itens',p:pi,bar:c.bar,pilar:'itens',unid:'itens'},
+    {nome:'Clientes atendidos',val:a.num_clientes+' clientes',meta:m.clientes+' clientes',p:pc,bar:c.bar,pilar:'clientes',unid:'clientes'},
+  ];
+  pilares.forEach(pl=>{
+    const id='pl-'+vendedorAtivo.replace(/ /g,'')+'-'+pl.pilar;
+    h+=`<div class="pilar" style="background:${c.bg};border-color:${c.bar}33">
+      <div class="pilar-header">
+        <span class="pilar-nome">${pl.nome}</span>
+        <span class="pilar-pct" style="color:${c.bar}">${pl.p}%</span>
+      </div>
+      <div class="pilar-nums">${pl.val} <span style="color:#aaa">/ meta ${pl.meta}</span></div>
+      <div class="pilar-bar"><div class="pilar-bar-fill" style="width:${pl.p}%;background:${c.bar}"></div></div>
+      <span class="pilar-meta-edit" onclick="toggleMetaEdit('${id}')">editar meta</span>
+      <div class="meta-edit-wrap" id="${id}">
+        <input type="number" id="inp-${id}" value="${METAS[vendedorAtivo][pl.pilar]}" step="${pl.pilar==='valor'?1000:1}" style="width:120px">
+        <button onclick="salvarMeta('${vendedorAtivo}','${pl.pilar}','${id}')">OK</button>
+        <button class="cx" onclick="toggleMetaEdit('${id}')">X</button>
+      </div>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  // Tabela de clientes
+  h+=`<div style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px">
+    Clientes — ${cliArr.length} na carteira, ${a.num_clientes} atendidos
+  </div>
+  <div style="overflow-x:auto">
+  <table class="clientes-table">
+    <thead><tr>
+      <th>Cliente</th>
+      <th>Faturamento</th>
+      <th>Meta fat.</th>
+      <th>% Fat.</th>
+      <th>Itens</th>
+      <th>Meta itens</th>
+      <th>% Itens</th>
+      <th>Status</th>
+    </tr></thead>
+    <tbody>`;
+
+  cliArr.forEach(cl=>{
+    const pv2=cl.valor>0?pct(cl.valor,cl.metaV):0;
+    const pi2=cl.itens>0?pct(cl.itens,cl.metaI):0;
+    const temVenda=cl.valor>0;
+    const status=!temVenda?'br':(pv2>=100?'bg':pv2>=60?'ba':'br');
+    const statusTxt=!temVenda?'Sem venda':(pv2>=100?'Meta batida':pv2>=60?'Em andamento':'Atenção');
+    h+=`<tr style="${!temVenda?'opacity:0.5':''}">
+      <td>${cl.nome}${cl.novo?'<span class="novo-cliente">novo</span>':''}</td>
+      <td>${temVenda?fmt(cl.valor):'—'}</td>
+      <td>${fmt(cl.metaV)}</td>
+      <td>
+        <div class="cli-bar-wrap">
+          <div class="cli-bar-bg"><div class="cli-bar-f" style="width:${pv2}%;background:${c.bar}"></div></div>
+          <span style="min-width:30px;text-align:right;font-weight:600">${pv2}%</span>
+        </div>
+      </td>
+      <td>${temVenda?fmtN(cl.itens):'—'}</td>
+      <td>${fmtN(cl.metaI)}</td>
+      <td>
+        <div class="cli-bar-wrap">
+          <div class="cli-bar-bg"><div class="cli-bar-f" style="width:${pi2}%;background:${c.bar}"></div></div>
+          <span style="min-width:30px;text-align:right;font-weight:600">${pi2}%</span>
+        </div>
+      </td>
+      <td><span class="badge ${status}">${statusTxt}</span></td>
+    </tr>`;
+  });
+
+  h+=`</tbody></table></div></div>`;
+  document.getElementById('conteudo').innerHTML=h;
+}
+
+function renderClientes(){
+  // Visão geral de todos os clientes
+  const cliMap={};
+  dadosVendas.forEach(venda=>{
+    const cli=venda.customer?.name||venda.cliente||'';
+    const v=venda.seller?.name||venda.vendedor||'';
+    const valor=parseFloat(venda.net_value||venda.valor_liquido||venda.value||0);
+    const itens=(venda.items||[]).reduce((s,i)=>s+(parseFloat(i.quantity)||0),0)||parseFloat(venda.quantidade_itens||0);
+    if(!cli) return;
+    if(!cliMap[cli]) cliMap[cli]={valor:0,itens:0,vendedor:v};
+    cliMap[cli].valor+=valor;
+    cliMap[cli].itens+=itens;
+  });
+
+  const cliArr=Object.entries(cliMap).sort((a,b)=>b[1].valor-a[1].valor);
+
+  let h=`<div class="secao">
+    <div class="secao-header"><span class="secao-titulo">Todos os clientes atendidos</span><span class="secao-sub">${cliArr.length} clientes no período</span></div>
+    <div style="padding:14px 18px;overflow-x:auto">
+    <table class="clientes-table">
+      <thead><tr><th>Cliente</th><th>Vendedor</th><th>Faturamento</th><th>Itens</th></tr></thead>
+      <tbody>`;
+
+  cliArr.forEach(([cli,d])=>{
+    const c=CORES[d.vendedor]||{bar:'#888'};
+    h+=`<tr>
+      <td>${cli}</td>
+      <td><span style="background:${c.bar}22;color:${c.bar};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">${d.vendedor||'—'}</span></td>
+      <td>${fmt(d.valor)}</td>
+      <td>${fmtN(d.itens)}</td>
+    </tr>`;
+  });
+
+  h+=`</tbody></table></div></div>`;
+  document.getElementById('conteudo').innerHTML=h;
+}
+
+function renderMetas(){
+  let h=`<div class="secao"><div class="secao-header"><span class="secao-titulo">Configurar metas mensais</span><span class="secao-sub">Ajuste e distribui automaticamente por cliente</span></div><div style="padding:14px 18px">`;
+  h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">`;
+
+  VENDEDORES.forEach(v=>{
+    const c=CORES[v], m=METAS[v];
+    const idV=v.replace(/ /g,'');
+    h+=`<div style="border:1px solid ${c.bar}44;border-radius:10px;padding:16px;background:${c.bg}">
+      <div style="font-weight:700;font-size:14px;color:${c.text};margin-bottom:14px">${v}</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:4px">META DE FATURAMENTO (R$)</label>
+        <div style="display:flex;gap:6px">
+          <input type="number" id="m-valor-${idV}" value="${m.valor}" step="1000"
+            style="flex:1;font-size:13px;padding:6px 8px;border:1px solid ${c.bar}66;border-radius:6px">
+          <button onclick="salvarMetaDireta('${v}','valor','m-valor-${idV}')"
+            style="font-size:12px;padding:6px 12px;border-radius:6px;border:none;background:${c.bar};color:#fff;cursor:pointer;font-weight:600">OK</button>
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:3px">Histórico: ${fmt(STATS_HIST[v].valor_medio)}/mês</div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:4px">META DE ITENS VENDIDOS</label>
+        <div style="display:flex;gap:6px">
+          <input type="number" id="m-itens-${idV}" value="${m.itens}" step="10"
+            style="flex:1;font-size:13px;padding:6px 8px;border:1px solid ${c.bar}66;border-radius:6px">
+          <button onclick="salvarMetaDireta('${v}','itens','m-itens-${idV}')"
+            style="font-size:12px;padding:6px 12px;border-radius:6px;border:none;background:${c.bar};color:#fff;cursor:pointer;font-weight:600">OK</button>
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:3px">Histórico: ${fmtN(STATS_HIST[v].itens_medio)} itens/mês</div>
+      </div>
+
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#666;display:block;margin-bottom:4px">META DE CLIENTES ATENDIDOS</label>
+        <div style="display:flex;gap:6px">
+          <input type="number" id="m-clientes-${idV}" value="${m.clientes}" step="1"
+            style="flex:1;font-size:13px;padding:6px 8px;border:1px solid ${c.bar}66;border-radius:6px">
+          <button onclick="salvarMetaDireta('${v}','clientes','m-clientes-${idV}')"
+            style="font-size:12px;padding:6px 12px;border-radius:6px;border:none;background:${c.bar};color:#fff;cursor:pointer;font-weight:600">OK</button>
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:3px">Histórico: ${fmtN(STATS_HIST[v].clientes_medio)} clientes/mês</div>
+      </div>
+    </div>`;
+  });
+
+  h+=`</div>
+  <div style="margin-top:16px;padding:12px;background:#E6F1FB;border-radius:8px;font-size:12px;color:#0C447C">
+    <strong>Como funciona a distribuição automática:</strong> Ao definir a meta de faturamento, ela é distribuída proporcionalmente para cada cliente baseado no histórico de compras de 2025-2026. 
+    Clientes novos (sem histórico) recebem a média da carteira automaticamente.
+  </div>
+  </div></div>`;
+
+  document.getElementById('conteudo').innerHTML=h;
+}
+
+function salvarMetaDireta(vendedor, pilar, inputId){
+  const el=document.getElementById(inputId);
+  if(!el) return;
+  const val=parseFloat(el.value)||0;
+  if(val>0){
+    METAS[vendedor][pilar]=val;
+    renderSecao();
+  }
+}
+
+function salvarMeta(vendedor, pilar, id){
+  const el=document.getElementById('inp-'+id);
+  if(!el) return;
+  const val=parseFloat(el.value)||0;
+  if(val>0){
+    METAS[vendedor][pilar]=val;
+    renderVendedores();
+  }
+}
+
+function toggleMetaEdit(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('show');
+}
+
+function setSecao(s,btn){
+  secaoAtiva=s;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(dadosVendas.length>0||s==='metas') renderSecao();
+  else carregar();
+}
+
+function setVendedor(v){
+  vendedorAtivo=v;
+  renderVendedores();
+}
+
+function setPeriodo(p,btn){
+  periodoAtivo=p;
+  document.querySelectorAll('.periodo-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(autenticado) carregar();
+}
+
+// Inicializar
+verificarAuth().then(ok=>{
+  if(ok) carregar();
+  else {
+    document.getElementById('conteudo').innerHTML=`<div class="nologin">
+      <h3>Bem-vindo ao Dashboard Comercial AquaSmart</h3>
+      <p>Conecte o Conta Azul para ver os dados de vendas, itens e clientes em tempo real.</p>
+      <button class="btn-grande" onclick="fazerLogin()">Conectar Conta Azul</button>
+    </div>`;
+  }
+});
+</script>
+</body>
+</html>
